@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tape Reading para MT5</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Sistema de Tape Reading para MT5</h1>
+            <p class="text-gray-600">Análise em tempo real e replicação de ordens</p>
+        </header>
+
+        <!-- Seletor de Pares de Moedas -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Selecionar Par de Moedas</h2>
+            <div class="mb-4">
+                <div class="flex flex-wrap border-b">
+                    <button class="px-3 py-2 font-medium text-sm border-b-2 border-blue-500 text-blue-600" id="tab-majors">Principais</button>
+                    <button class="px-3 py-2 font-medium text-sm text-gray-500 hover:text-gray-700" id="tab-crosses">Cruzados</button>
+                    <button class="px-3 py-2 font-medium text-sm text-gray-500 hover:text-gray-700" id="tab-exotics">Exóticos</button>
+                    <button class="px-3 py-2 font-medium text-sm text-gray-500 hover:text-gray-700" id="tab-commodities">Commodities</button>
+                    <button class="px-3 py-2 font-medium text-sm text-gray-500 hover:text-gray-700" id="tab-crypto">Criptomoedas</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2" id="currency-pairs">
+                <!-- Pares de moedas serão inseridos aqui via JavaScript -->
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Integração MT5 -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-xl font-semibold mb-4">Integração com MT5</h2>
+                <div class="space-y-4">
+                    <!-- Seletor de tipo de conta -->
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tipo de Conta</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="account-type" value="demo" class="h-4 w-4 text-blue-600" checked>
+                                <span class="ml-2 text-sm text-gray-700">Demo</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="account-type" value="real" class="h-4 w-4 text-blue-600">
+                                <span class="ml-2 text-sm text-gray-700">Real</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Conta MT5</label>
+                        <input type="text" id="mt5-account" class="w-full p-2 border rounded" placeholder="12345678">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Servidor</label>
+                        <input type="text" id="mt5-server" class="w-full p-2 border rounded" placeholder="ICMarketsSC-Live">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Senha</label>
+                        <input type="password" id="mt5-password" class="w-full p-2 border rounded" placeholder="********">
+                    </div>
+                    <button id="connect-mt5" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+                        Conectar ao MT5
+                    </button>
+                    <div id="connection-status" class="text-center text-sm font-medium text-gray-500">
+                        Não conectado
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replicação de Ordens -->
+            <div class="bg-white rounded-lg shadow p-4 lg:col-span-2">
+                <h2 class="text-xl font-semibold mb-4">Replicação de Ordens</h2>
+                <div class="space-y-4">
+                    <!-- Configuração de replicação -->
+                    <div class="p-3 bg-blue-50 rounded-lg mb-4">
+                        <h3 class="font-medium text-blue-800 mb-2">Configuração de Replicação</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enable-replication" class="h-4 w-4">
+                                <label for="enable-replication" class="text-sm font-medium">Ativar Replicação de Ordens</label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Conta MT5 Destino</label>
+                                <input type="text" id="target-mt5-account" class="w-full p-2 border rounded" placeholder="87654321">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Servidor Destino</label>
+                                <input type="text" id="target-mt5-server" class="w-full p-2 border rounded" placeholder="ICMarketsSC-Demo">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Senha Destino</label>
+                                <input type="password" id="target-mt5-password" class="w-full p-2 border rounded" placeholder="********">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Par de Moedas</label>
+                        <select id="order-symbol" class="w-full p-2 border rounded">
+                            <option value="EURUSD">EUR/USD</option>
+                            <option value="GBPUSD">GBP/USD</option>
+                            <option value="USDJPY">USD/JPY</option>
+                            <option value="AUDUSD">AUD/USD</option>
+                            <option value="USDCAD">USD/CAD</option>
+                            <option value="USDCHF">USD/CHF</option>
+                            <option value="NZDUSD">NZD/USD</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tamanho do Lote</label>
+                        <input type="number" id="lot-size" value="0.01" min="0.01" step="0.01" class="w-full p-2 border rounded">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Stop Loss (pontos)</label>
+                            <input type="number" id="stop-loss" value="50" min="10" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Take Profit (pontos)</label>
+                            <input type="number" id="take-profit" value="100" min="10" class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="auto-trading" class="h-4 w-4">
+                        <label for="auto-trading" class="text-sm font-medium">Negociação Automática</label>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="buy-button" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded">
+                            Comprar
+                        </button>
+                        <button id="sell-button" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded">
+                            Vender
+                        </button>
+                    </div>
+                    <div>
+                        <h3 class="font-medium mb-2">Histórico de Ordens</h3>
+                        <div class="max-h-60 overflow-y-auto">
+                            <table class="min-w-full divide-y divide-gray-200" id="orders-history">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- Histórico de ordens será inserido aqui via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas de Assertividade -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Métricas de Assertividade</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-blue-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-blue-600 font-medium">Operações</div>
+                    <div class="text-2xl font-bold" id="total-trades">0</div>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-green-600 font-medium">Taxa de Acerto</div>
+                    <div class="text-2xl font-bold" id="win-rate">0%</div>
+                </div>
+                <div class="bg-purple-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-purple-600 font-medium">Fator de Lucro</div>
+                    <div class="text-2xl font-bold" id="profit-factor">0</div>
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-yellow-600 font-medium">Lucro Líquido</div>
+                    <div class="text-2xl font-bold" id="net-profit">$0.00</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Ganhos vs Perdas</h3>
+                    <div class="h-64">
+                        <canvas id="win-loss-chart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Performance por Par</h3>
+                    <div class="h-64">
+                        <canvas id="pair-performance-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise de Tape Reading -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <h2 class="text-xl font-semibold mb-4">Análise de Tape Reading em Tempo Real</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Painel de controle -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-medium mb-4">Sinal Atual</h3>
+                    <div id="current-signal" class="text-center p-3 rounded-lg bg-gray-100 text-gray-800">
+                        <div class="text-xl font-bold uppercase">NEUTRO</div>
+                        <div class="text-sm">Confiança: 0%</div>
+                    </div>
+                    <div class="mt-6">
+                        <h3 class="font-medium mb-2">Análise de Volume</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">Compras:</span>
+                                <span class="text-sm" id="buy-volume">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">Vendas:</span>
+                                <span class="text-sm" id="sell-volume">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">Agressores Compradores:</span>
+                                <span class="text-sm" id="aggressive-buys">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">Agressores Vendedores:</span>
+                                <span class="text-sm" id="aggressive-sells">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gráfico de preços -->
+                <div class="bg-white p-4 rounded-lg shadow lg:col-span-2">
+                    <h3 class="text-lg font-medium mb-4">Gráfico de Preços</h3>
+                    <div class="h-64">
+                        <canvas id="price-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Book de ofertas -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-lg font-medium mb-4">Book de Ofertas</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <h4 class="text-center font-medium text-green-600 mb-2">Compra</h4>
+                            <div class="space-y-1" id="bids-container">
+                                <!-- Bids serão inseridos aqui via JavaScript -->
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-center font-medium text-red-600 mb-2">Venda</h4>
+                            <div class="space-y-1" id="asks-container">
+                                <!-- Asks serão inseridos aqui via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fluxo de ordens recentes -->
+                <div class="bg-white p-4 rounded-lg shadow lg:col-span-2">
+                    <h3 class="text-lg font-medium mb-4">Fluxo de Ordens Recentes</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="recent-orders">
+                                <!-- Ordens recentes serão inseridas aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicionar biblioteca para WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/reconnecting-websocket@4.4.0/dist/reconnecting-websocket.min.js"></script>
+
+    <script>
+        // Dados de pares de moedas
+        const currencyPairs = {
+            majors: ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD'],
+            crosses: ['EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURAUD', 'EURCHF', 'GBPCHF'],
+            exotics: ['USDMXN', 'USDZAR', 'USDBRL', 'USDTRY', 'USDRUB', 'USDSEK', 'USDNOK'],
+            commodities: ['XAUUSD', 'XAGUSD', 'XPDUSD', 'XPTUSD'],
+            crypto: ['BTCUSD', 'ETHUSD', 'LTCUSD', 'XRPUSD']
+        };
+
+        // Preços base para simulação
+        const basePrices = {
+            'EURUSD': 1.0765, 'GBPUSD': 1.2650, 'USDJPY': 151.80, 'USDCHF': 0.9040,
+            'AUDUSD': 0.6580, 'USDCAD': 1.3650, 'NZDUSD': 0.5980, 'EURGBP': 0.8510,
+            'EURJPY': 163.40, 'GBPJPY': 192.10, 'AUDJPY': 99.80, 'EURAUD': 1.6360,
+            'EURCHF': 0.9730, 'GBPCHF': 1.1440, 'USDMXN': 16.8500, 'USDZAR': 18.6200,
+            'USDBRL': 5.0700, 'USDTRY': 32.1500, 'USDRUB': 92.3000, 'USDSEK': 10.4500,
+            'XAUUSD': 2320.50, 'XAGUSD': 27.15, 'BTCUSD': 67850.00, 'ETHUSD': 3275.00
+        };
+
+        // Estado da aplicação
+        let selectedPair = 'EURUSD';
+        let isConnected = false;
+        let isReplicationEnabled = false;
+        let priceHistory = [];
+        let tradingHistory = [];
+        let autoTrading = false;
+        let lastSignal = null;
+        let mt5Socket = null;
+        let accountType = 'demo';
+
+        // Formatar nome do par para exibição
+        function formatPairName(pair) {
+            if (pair.startsWith('XAU')) return 'OURO/USD';
+            if (pair.startsWith('XAG')) return 'PRATA/USD';
+            if (pair.startsWith('XPD')) return 'PALÁDIO/USD';
+            if (pair.startsWith('XPT')) return 'PLATINA/USD';
+            
+            // Para pares de moedas normais, inserir uma barra entre as moedas
+            if (pair.length === 6) {
+                return `${pair.substring(0, 3)}/${pair.substring(3, 6)}`;
+            }
+            
+            return pair;
+        }
+
+        // Inicializar seletor de pares de moedas
+        function initCurrencyPairSelector() {
+            const container = document.getElementById('currency-pairs');
+            
+            // Mostrar pares principais por padrão
+            renderCurrencyPairs('majors');
+            
+            // Configurar tabs
+            document.getElementById('tab-majors').addEventListener('click', () => {
+                setActiveTab('tab-majors');
+                renderCurrencyPairs('majors');
+            });
+            
+            document.getElementById('tab-crosses').addEventListener('click', () => {
+                setActiveTab('tab-crosses');
+                renderCurrencyPairs('crosses');
+            });
+            
+            document.getElementById('tab-exotics').addEventListener('click', () => {
+                setActiveTab('tab-exotics');
+                renderCurrencyPairs('exotics');
+            });
+            
+            document.getElementById('tab-commodities').addEventListener('click', () => {
+                setActiveTab('tab-commodities');
+                renderCurrencyPairs('commodities');
+            });
+            
+            document.getElementById('tab-crypto').addEventListener('click', () => {
+                setActiveTab('tab-crypto');
+                renderCurrencyPairs('crypto');
+            });
+        }
+
+        // Definir tab ativo
+        function setActiveTab(activeTabId) {
+            const tabs = ['tab-majors', 'tab-crosses', 'tab-exotics', 'tab-commodities', 'tab-crypto'];
+            
+            tabs.forEach(tabId => {
+                const tab = document.getElementById(tabId);
+                if (tabId === activeTabId) {
+                    tab.className = 'px-3 py-2 font-medium text-sm border-b-2 border-blue-500 text-blue-600';
+                } else {
+                    tab.className = 'px-3 py-2 font-medium text-sm text-gray-500 hover:text-gray-700';
+                }
+            });
+        }
+
+        // Renderizar pares de moedas
+        function renderCurrencyPairs(category) {
+            const container = document.getElementById('currency-pairs');
+            container.innerHTML = '';
+            
+            currencyPairs[category].forEach(pair => {
+                const button = document.createElement('button');
+                button.className = `p-2 text-sm rounded ${
+                    selectedPair === pair 
+                        ? 'bg-blue-100 text-blue-800 font-medium' 
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                }`;
+                button.textContent = formatPairName(pair);
+                button.addEventListener('click', () => {
+                    selectedPair = pair;
+                    document.getElementById('order-symbol').value = pair;
+                    renderCurrencyPairs(category);
+                    fetchMarketData();
+                });
+                
+                container.appendChild(button);
+            });
+        }
+
+        // Inicializar integração MT5
+        function initMT5Integration() {
+            const connectButton = document.getElementById('connect-mt5');
+            const connectionStatus = document.getElementById('connection-status');
+            const accountTypeRadios = document.querySelectorAll('input[name="account-type"]');
+            const enableReplicationCheckbox = document.getElementById('enable-replication');
+            
+            // Configurar seletor de tipo de conta
+            accountTypeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    accountType = e.target.value;
+                    
+                    // Atualizar placeholder do servidor com base no tipo de conta
+                    const serverInput = document.getElementById('mt5-server');
+                    if (accountType === 'demo') {
+                        serverInput.placeholder = 'ICMarketsSC-Demo';
+                    } else {
+                        serverInput.placeholder = 'ICMarketsSC-Live';
+                    }
+                });
+            });
+            
+            // Configurar checkbox de replicação
+            enableReplicationCheckbox.addEventListener('change', (e) => {
+                isReplicationEnabled = e.target.checked;
+                
+                // Habilitar/desabilitar campos de replicação
+                const targetFields = [
+                    document.getElementById('target-mt5-account'),
+                    document.getElementById('target-mt5-server'),
+                    document.getElementById('target-mt5-password')
+                ];
+                
+                targetFields.forEach(field => {
+                    field.disabled = !isReplicationEnabled;
+                });
+            });
+            
+            // Inicialmente desabilitar campos de replicação
+            document.getElementById('target-mt5-account').disabled = true;
+            document.getElementById('target-mt5-server').disabled = true;
+            document.getElementById('target-mt5-password').disabled = true;
+            
+            connectButton.addEventListener('click', () => {
+                const account = document.getElementById('mt5-account').value;
+                const server = document.getElementById('mt5-server').value;
+                const password = document.getElementById('mt5-password').value;
+                
+                if (!account || !server) {
+                    alert('Por favor, preencha a conta e o servidor MT5.');
+                    return;
+                }
+                
+                // Conectar ao MT5 via WebSocket
+                connectionStatus.textContent = 'Conectando...';
+                connectionStatus.className = 'text-center text-sm font-medium text-yellow-500';
+                
+                // Tentar conectar ao MT5
+                connectToMT5(account, server, password, accountType);
+            });
+            
+            // Inicializar botões de negociação
+            document.getElementById('buy-button').addEventListener('click', () => {
+                if (!isConnected) {
+                    alert('Por favor, conecte-se ao MT5 primeiro.');
+                    return;
+                }
+                
+                executeOrder('BUY');
+            });
+            
+            document.getElementById('sell-button').addEventListener('click', () => {
+                if (!isConnected) {
+                    alert('Por favor, conecte-se ao MT5 primeiro.');
+                    return;
+                }
+                
+                executeOrder('SELL');
+            });
+            
+            // Inicializar checkbox de negociação automática
+            document.getElementById('auto-trading').addEventListener('change', (e) => {
+                autoTrading = e.target.checked;
+            });
+        }
+
+        // Conectar ao MT5 via WebSocket
+        function connectToMT5(account, server, password, accountType) {
+            const connectionStatus = document.getElementById('connection-status');
+            
+            try {
+                // Em um ambiente real, você conectaria a um servidor WebSocket que se comunica com o MT5
+                // Para fins de demonstração, vamos simular a conexão
+                
+                // Verificar se já existe uma conexão
+                if (mt5Socket) {
+                    mt5Socket.close();
+                }
+                
+                // Criar uma nova conexão WebSocket
+                // Em um ambiente real, você usaria um endpoint real que se comunica com o MT5
+                // mt5Socket = new ReconnectingWebSocket('wss://seu-servidor-mt5/ws');
+                
+                // Simulação de conexão para demonstração
+                setTimeout(() => {
+                    isConnected = true;
+                    connectionStatus.textContent = `Conectado com sucesso ao MT5 (${accountType.toUpperCase()})`;
+                    connectionStatus.className = 'text-center text-sm font-medium text-green-500';
+                    
+                    // Habilitar botões de negociação
+                    document.getElementById('buy-button').disabled = false;
+                    document.getElementById('sell-button').disabled = false;
+                    document.getElementById('auto-trading').disabled = false;
+                    
+                    // Simular recebimento de dados do MT5
+                    startMT5DataSimulation();
+                }, 1500);
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao conectar ao MT5:', error);
+                connectionStatus.textContent = 'Erro ao conectar: ' + error.message;
+                connectionStatus.className = 'text-center text-sm font-medium text-red-500';
+                return false;
+            }
+        }
+
+        // Simular recebimento de dados do MT5
+        function startMT5DataSimulation() {
+            // Em um ambiente real, você receberia dados do MT5 via WebSocket
+            // Para fins de demonstração, vamos simular o recebimento de dados
+            
+            // Simular recebimento de preços a cada 1 segundo
+            setInterval(() => {
+                const marketData = generateMarketData();
+                
+                // Processar dados de mercado
+                processMarketData(marketData);
+            }, 1000);
+        }
+
+        // Processar dados de mercado recebidos do MT5
+        function processMarketData(marketData) {
+            // Atualizar book de ofertas
+            updateOrderBook(marketData.orderBook);
+            
+            // Atualizar fluxo de ordens recentes
+            updateRecentOrders(marketData.recentOrders);
+            
+            // Analisar tape reading
+            const analysis = analyzeTapeReading(marketData);
+            
+            // Verificar se deve executar ordem automática
+            checkAutoTrading(analysis);
+        }
+
+        // Executar ordem
+        function executeOrder(action) {
+            const symbol = document.getElementById('order-symbol').value;
+            const lotSize = parseFloat(document.getElementById('lot-size').value);
+            const stopLossPoints = parseInt(document.getElementById('stop-loss').value);
+            const takeProfitPoints = parseInt(document.getElementById('take-profit').value);
+            
+            if (!symbol || isNaN(lotSize) || isNaN(stopLossPoints) || isNaN(takeProfitPoints)) {
+                alert('Por favor, preencha todos os campos corretamente.');
+                return;
+            }
+            
+            const currentPrice = basePrices[symbol] || 1.0000;
+            
+            // Calcular stop loss e take profit
+            let stopLoss, takeProfit;
+            const pipValue = symbol.includes('JPY') ? 0.01 : 0.0001;
+            
+            if (action === 'BUY') {
+                stopLoss = currentPrice - (stopLossPoints * pipValue);
+                takeProfit = currentPrice + (takeProfitPoints * pipValue);
+            } else {
+                stopLoss = currentPrice + (stopLossPoints * pipValue);
+                takeProfit = currentPrice - (takeProfitPoints * pipValue);
+            }
+            
+            // Criar objeto de ordem
+            const orderId = Math.floor(Math.random() * 1000000);
+            
+            const newOrder = {
+                time: new Date().toISOString(),
+                type: action,
+                symbol: symbol,
+                price: currentPrice.toFixed(5),
+                volume: lotSize,
+                stopLoss: stopLoss.toFixed(5),
+                takeProfit: takeProfit.toFixed(5),
+                orderId: orderId,
+                result: null,
+                profit: null,
+                status: 'Enviando...'
+            };
+            
+            // Adicionar ao histórico
+            tradingHistory.unshift(newOrder);
+            updateOrdersHistory();
+            
+            // Em um ambiente real, você enviaria a ordem para o MT5 via WebSocket
+            // Para fins de demonstração, vamos simular o envio da ordem
+            
+            // Simular envio da ordem para o MT5
+            setTimeout(() => {
+                // Atualizar status da ordem
+                const index = tradingHistory.findIndex(t => t.orderId === orderId);
+                if (index !== -1) {
+                    tradingHistory[index].status = 'Executada';
+                    updateOrdersHistory();
+                }
+                
+                // Se a replicação estiver ativada, replicar a ordem para a conta destino
+                if (isReplicationEnabled) {
+                    replicateOrder(newOrder);
+                }
+                
+                // Simular resultado após alguns segundos
+                setTimeout(() => {
+                    simulateTradeResult(newOrder);
+                    updateMetrics();
+                }, 5000);
+            }, 1000);
+            
+            return { success: true, orderId };
+        }
+
+        // Replicar ordem para a conta destino
+        function replicateOrder(order) {
+            const targetAccount = document.getElementById('target-mt5-account').value;
+            const targetServer = document.getElementById('target-mt5-server').value;
+            
+            if (!targetAccount || !targetServer) {
+                console.error('Configuração de replicação incompleta');
+                return false;
+            }
+            
+            // Em um ambiente real, você enviaria a ordem para a conta destino via WebSocket
+            // Para fins de demonstração, vamos simular a replicação
+            
+            console.log(`Replicando ordem ${order.orderId} para conta ${targetAccount} no servidor ${targetServer}`);
+            
+            // Criar uma cópia da ordem com um novo ID
+            const replicatedOrderId = Math.floor(Math.random() * 1000000);
+            
+            const replicatedOrder = {
+                ...order,
+                orderId: replicatedOrderId,
+                status: 'Replicada',
+                replicatedFrom: order.orderId
+            };
+            
+            // Adicionar ao histórico
+            tradingHistory.unshift(replicatedOrder);
+            updateOrdersHistory();
+            
+            // Simular resultado da ordem replicada
+            setTimeout(() => {
+                simulateTradeResult(replicatedOrder);
+                updateMetrics();
+            }, 7000);
+            
+            return true;
+        }
+
+        // Atualizar histórico de ordens
+        function updateOrdersHistory() {
+            const container = document.getElementById('orders-history').querySelector('tbody');
+            container.innerHTML = '';
+            
+            tradingHistory.slice(0, 10).forEach(order => {
+                const row = document.createElement('tr');
+                
+                const timeCell = document.createElement('td');
+                timeCell.className = 'px-3 py-2 whitespace-nowrap text-xs text-gray-500';
+                timeCell.textContent = new Date(order.time).toLocaleTimeString();
+                
+                const typeCell = document.createElement('td');
+                typeCell.className = 'px-3 py-2 whitespace-nowrap text-xs';
+                const typeSpan = document.createElement('span');
+                typeSpan.className = `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    order.type === 'BUY' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`;
+                typeSpan.textContent = order.type;
+                typeCell.appendChild(typeSpan);
+                
+                const priceCell = document.createElement('td');
+                priceCell.className = 'px-3 py-2 whitespace-nowrap text-xs text-gray-500';
+                priceCell.textContent = order.price;
+                
+                const volumeCell = document.createElement('td');
+                volumeCell.className = 'px-3 py-2 whitespace-nowrap text-xs text-gray-500';
+                volumeCell.textContent = order.volume;
+                
+                const statusCell = document.createElement('td');
+                statusCell.className = 'px-3 py-2 whitespace-nowrap text-xs';
+                
+                let statusClass = 'bg-gray-100 text-gray-800';
+                if (order.status === 'Executada') {
+                    statusClass = 'bg-green-100 text-green-800';
+                } else if (order.status === 'Replicada') {
+                    statusClass = 'bg-blue-100 text-blue-800';
+                }
+                
+                statusCell.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${order.status}</span>`;
+                
+                row.appendChild(timeCell);
+                row.appendChild(typeCell);
+                row.appendChild(priceCell);
+                row.appendChild(volumeCell);
+                row.appendChild(statusCell);
+                
+                container.appendChild(row);
+            });
+        }
+
+        // Simular resultado de operação
+        function simulateTradeResult(trade) {
+            // Simular resultado com 60% de chance de lucro
+            const isWin = Math.random() < 0.6;
+            const pipValue = trade.symbol.includes('JPY') ? 0.01 : 0.0001;
+            const pips = isWin ? 
+                Math.floor(Math.random() * 50) + 10 : 
+                -(Math.floor(Math.random() * 30) + 5);
+            
+            trade.result = isWin ? 'win' : 'loss';
+            trade.pips = pips;
+            trade.profit = pips * (trade.volume * 10); // Cálculo simplificado
+            trade.status = isWin ? 'Fechada (Lucro)' : 'Fechada (Perda)';
+            
+            // Atualizar o objeto no histórico
+            const index = tradingHistory.findIndex(t => t.orderId === trade.orderId);
+            if (index !== -1) {
+                tradingHistory[index] = trade;
+                updateOrdersHistory();
+            }
+        }
+
+        // Atualizar métricas
+        function updateMetrics() {
+            // Calcular métricas
+            const totalTrades = tradingHistory.filter(t => t.result !== null).length;
+            const winningTrades = tradingHistory.filter(t => t.result === 'win').length;
+            const losingTrades = tradingHistory.filter(t => t.result === 'loss').length;
+            const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+            
+            const wins = tradingHistory.filter(t => t.result === 'win');
+            const losses = tradingHistory.filter(t => t.result === 'loss');
+            
+            const totalWin = wins.reduce((sum, t) => sum + t.profit, 0);
+            const totalLoss = Math.abs(losses.reduce((sum, t) => sum + (t.profit || 0), 0));
+            
+            const profitFactor = totalLoss > 0 ? totalWin / totalLoss : totalWin > 0 ? 999 : 0;
+            const netProfit = totalWin - totalLoss;
+            
+            // Atualizar elementos na página
+            document.getElementById('total-trades').textContent = totalTrades;
+            document.getElementById('win-rate').textContent = winRate.toFixed(1) + '%';
+            document.getElementById('profit-factor').textContent = profitFactor.toFixed(2);
+            document.getElementById('net-profit').textContent = '$' + netProfit.toFixed(2);
+            
+            // Atualizar gráficos
+            updateWinLossChart(winningTrades, losingTrades);
+            updatePairPerformanceChart();
+        }
+
+        // Inicializar gráficos
+        let winLossChart, pairPerformanceChart, priceChart;
+
+        function initCharts() {
+            // Gráfico de ganhos vs perdas
+            const winLossCtx = document.getElementById('win-loss-chart').getContext('2d');
+            winLossChart = new Chart(winLossCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Ganhos', 'Perdas'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#4ade80', '#f87171'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+            
+            // Gráfico de performance por par
+            const pairCtx = document.getElementById('pair-performance-chart').getContext('2d');
+            pairPerformanceChart = new Chart(pairCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Lucro',
+                        data: [],
+                        backgroundColor: '#3b82f6',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de preços
+            const priceCtx = document.getElementById('price-chart').getContext('2d');
+            priceChart = new Chart(priceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Preço',
+                        data: [],
+                        borderColor: '#2563eb',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true
+                        },
+                        y: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Atualizar gráfico de ganhos vs perdas
+        function updateWinLossChart(wins, losses) {
+            winLossChart.data.datasets[0].data = [wins, losses];
+            winLossChart.update();
+        }
+
+        // Atualizar gráfico de performance por par
+        function updatePairPerformanceChart() {
+            // Agrupar por par de moedas
+            const pairPerformance = {};
+            
+            tradingHistory.forEach(trade => {
+                if (trade.result === null) return;
+                
+                if (!pairPerformance[trade.symbol]) {
+                    pairPerformance[trade.symbol] = {
+                        profit: 0
+                    };
+                }
+                
+                pairPerformance[trade.symbol].profit += trade.profit || 0;
+            });
+            
+            const pairs = Object.keys(pairPerformance);
+            const profits = pairs.map(pair => pairPerformance[pair].profit);
+            
+            pairPerformanceChart.data.labels = pairs.map(formatPairName);
+            pairPerformanceChart.data.datasets[0].data = profits;
+            pairPerformanceChart.update();
+        }
+
+        // Atualizar gráfico de preços
+        function updatePriceChart(price) {
+            const time = new Date().toLocaleTimeString();
+            
+            if (priceChart.data.labels.length > 20) {
+                priceChart.data.labels.shift();
+                priceChart.data.datasets[0].data.shift();
+            }
+            
+            priceChart.data.labels.push(time);
+            priceChart.data.datasets[0].data.push(price);
+            priceChart.update();
+        }
+
+        // Gerar dados de mercado simulados
+        function generateMarketData() {
+            const basePrice = basePrices[selectedPair] || 1.0000;
+            
+            // Determinar a precisão de preço com base no par
+            let pricePrecision = 5;
+            if (selectedPair.includes('JPY')) {
+                pricePrecision = 3;
+            } else if (selectedPair.startsWith('XAU') || selectedPair.startsWith('XAG')) {
+                pricePrecision = 2;
+            } else if (selectedPair.startsWith('BTC')) {
+                pricePrecision = 1;
+            }
+            
+            // Gerar variação aleatória para o preço
+            const variationSize = selectedPair.includes('JPY') ? 0.10 : 0.0010;
+            const priceVariation = (Math.random() * variationSize * 2) - variationSize;
+            const currentPrice = basePrice + priceVariation;
+            
+            // Atualizar gráfico de preços
+            updatePriceChart(currentPrice);
+            
+            // Gerar volume aleatório
+            const volume = Math.floor(Math.random() * 100) + 1;
+            
+            // Determinar se é compra ou venda
+            const isBuy = Math.random() > 0.5;
+            
+            // Gerar dados de book de ofertas
+            const bookDepth = 5;
+            const bids = [];
+            const asks = [];
+            
+            // Determinar o tamanho do pip com base no par
+            let pipSize = 0.0001;
+            if (selectedPair.includes('JPY')) {
+                pipSize = 0.01;
+            } else if (selectedPair.startsWith('XAU') || selectedPair.startsWith('XAG')) {
+                pipSize = 0.10;
+            } else if (selectedPair.startsWith('BTC')) {
+                pipSize = 10.00;
+            }
+            
+            for (let i = 0; i < bookDepth; i++) {
+                bids.push({
+                    price: (currentPrice - (pipSize * (i + 1))).toFixed(pricePrecision),
+                    volume: Math.floor(Math.random() * 50) + 10
+                });
+                
+                asks.push({
+                    price: (currentPrice + (pipSize * (i + 1))).toFixed(pricePrecision),
+                    volume: Math.floor(Math.random() * 50) + 10
+                });
+            }
+            
+            // Gerar dados de fluxo de ordens recentes
+            const recentOrders = [];
+            for (let i = 0; i < 10; i++) {
+                recentOrders.push({
+                    time: new Date(Date.now() - (i * 1000)).toISOString(),
+                    price: (currentPrice + ((Math.random() * variationSize) - (variationSize / 2))).toFixed(pricePrecision),
+                    volume: Math.floor(Math.random() * 20) + 1,
+                    type: Math.random() > 0.5 ? 'buy' : 'sell',
+                    aggressor: Math.random() > 0.7 // 30% de chance de ser um grande player
+                });
+            }
+            
+            return {
+                symbol: selectedPair,
+                timestamp: new Date().toISOString(),
+                currentPrice: currentPrice.toFixed(pricePrecision),
+                lastTrade: {
+                    price: currentPrice.toFixed(pricePrecision),
+                    volume,
+                    type: isBuy ? 'buy' : 'sell'
+                },
+                orderBook: {
+                    bids,
+                    asks
+                },
+                recentOrders
+            };
+        }
+
+        // Atualizar book de ofertas
+        function updateOrderBook(orderBook) {
+            const bidsContainer = document.getElementById('bids-container');
+            const asksContainer = document.getElementById('asks-container');
+            
+            bidsContainer.innerHTML = '';
+            asksContainer.innerHTML = '';
+            
+            orderBook.bids.forEach(bid => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between bg-green-50 p-2 rounded text-base';
+                div.innerHTML = `<span>${bid.price}</span><span class="font-medium">${bid.volume}</span>`;
+                bidsContainer.appendChild(div);
+            });
+            
+            orderBook.asks.forEach(ask => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between bg-red-50 p-2 rounded text-base';
+                div.innerHTML = `<span>${ask.price}</span><span class="font-medium">${ask.volume}</span>`;
+                asksContainer.appendChild(div);
+            });
+        }
+
+        // Atualizar fluxo de ordens recentes
+        function updateRecentOrders(orders) {
+            const container = document.getElementById('recent-orders');
+            container.innerHTML = '';
+            
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                
+                const timeCell = document.createElement('td');
+                timeCell.className = 'px-4 py-2 whitespace-nowrap text-sm text-gray-500';
+                timeCell.textContent = new Date(order.time).toLocaleTimeString();
+                
+                const priceCell = document.createElement('td');
+                priceCell.className = 'px-4 py-2 whitespace-nowrap text-sm font-medium';
+                priceCell.innerHTML = `<span class="${order.type === 'buy' ? 'text-green-600' : 'text-red-600'}">${order.price}</span>`;
+                
+                const volumeCell = document.createElement('td');
+                volumeCell.className = 'px-4 py-2 whitespace-nowrap text-sm text-gray-500';
+                volumeCell.textContent = order.volume;
+                
+                const typeCell = document.createElement('td');
+                typeCell.className = 'px-4 py-2 whitespace-nowrap text-sm';
+                typeCell.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    order.type === 'buy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }">${order.type === 'buy' ? 'Compra' : 'Venda'}</span>`;
+                
+                const playerCell = document.createElement('td');
+                playerCell.className = 'px-4 py-2 whitespace-nowrap text-sm text-gray-500';
+                playerCell.textContent = order.aggressor ? 'Grande' : 'Normal';
+                
+                row.appendChild(timeCell);
+                row.appendChild(priceCell);
+                row.appendChild(volumeCell);
+                row.appendChild(typeCell);
+                row.appendChild(playerCell);
+                
+                container.appendChild(row);
+            });
+        }
+
+        // Analisar tape reading
+        function analyzeTapeReading(marketData) {
+            if (!marketData) return null;
+            
+            // Contar ordens de compra e venda recentes
+            const buyOrders = marketData.recentOrders.filter(order => order.type === 'buy').length;
+            const sellOrders = marketData.recentOrders.filter(order => order.type === 'sell').length;
+            
+            // Calcular volume total de compra e venda
+            const buyVolume = marketData.recentOrders
+                .filter(order => order.type === 'buy')
+                .reduce((sum, order) => sum + order.volume, 0);
+                
+            const sellVolume = marketData.recentOrders
+                .filter(order => order.type === 'sell')
+                .reduce((sum, order) => sum + order.volume, 0);
+            
+            // Verificar pressão de compra vs venda
+            let signal = 'neutro';
+            let confidence = 0;
+            
+            if (buyVolume > sellVolume * 1.5) {
+                signal = 'compra';
+                confidence = Math.min(100, Math.round((buyVolume / sellVolume) * 50));
+            } else if (sellVolume > buyVolume * 1.5) {
+                signal = 'venda';
+                confidence = Math.min(100, Math.round((sellVolume / buyVolume) * 50));
+            }
+            
+            // Verificar agressores (grandes players)
+            const aggressiveBuys = marketData.recentOrders.filter(order => order.type === 'buy' && order.aggressor).length;
+            const aggressiveSells = marketData.recentOrders.filter(order => order.type === 'sell' && order.aggressor).length;
+            
+            if (aggressiveBuys > aggressiveSells * 2) {
+                signal = 'compra';
+                confidence += 20;
+            } else if (aggressiveSells > aggressiveBuys * 2) {
+                signal = 'venda';
+                confidence += 20;
+            }
+            
+            // Limitar confiança a 100%
+            confidence = Math.min(100, confidence);
+            
+            // Atualizar elementos na página
+            document.getElementById('buy-volume').textContent = buyVolume;
+            document.getElementById('sell-volume').textContent = sellVolume;
+            document.getElementById('aggressive-buys').textContent = aggressiveBuys;
+            document.getElementById('aggressive-sells').textContent = aggressiveSells;
+            
+            const signalElement = document.getElementById('current-signal');
+            signalElement.innerHTML = `
+                <div class="text-xl font-bold uppercase">${signal.toUpperCase()}</div>
+                <div class="text-sm">Confiança: ${confidence}%</div>
+            `;
+            
+            if (signal === 'compra') {
+                signalElement.className = 'text-center p-3 rounded-lg bg-green-100 text-green-800';
+            } else if (signal === 'venda') {
+                signalElement.className = 'text-center p-3 rounded-lg bg-red-100 text-red-800';
+            } else {
+                signalElement.className = 'text-center p-3 rounded-lg bg-gray-100 text-gray-800';
+            }
+            
+            return {
+                signal,
+                confidence,
+                buyOrders,
+                sellOrders,
+                buyVolume,
+                sellVolume,
+                aggressiveBuys,
+                aggressiveSells
+            };
+        }
+
+        // Verificar se deve executar ordem automática
+        function checkAutoTrading(analysis) {
+            if (!autoTrading || !isConnected || !analysis) return;
+            
+            const { signal, confidence } = analysis;
+            
+            // Só executa ordens se a confiança for alta o suficiente e o sinal for diferente do último
+            if (confidence >= 70 && signal !== lastSignal && signal !== 'neutro') {
+                if (signal === 'compra') {
+                    executeOrder('BUY');
+                } else if (signal === 'venda') {
+                    executeOrder('SELL');
+                }
+                
+                lastSignal = signal;
+            }
+        }
+
+        // Buscar dados de mercado
+        function fetchMarketData() {
+            const marketData = generateMarketData();
+            
+            // Atualizar book de ofertas
+            updateOrderBook(marketData.orderBook);
+            
+            // Atualizar fluxo de ordens recentes
+            updateRecentOrders(marketData.recentOrders);
+            
+            // Analisar tape reading
+            const analysis = analyzeTapeReading(marketData);
+            
+            // Verificar se deve executar ordem automática
+            checkAutoTrading(analysis);
+            
+            return marketData;
+        }
+
+        // Inicializar aplicação
+        function init() {
+            initCurrencyPairSelector();
+            initMT5Integration();
+            initCharts();
+            
+            // Buscar dados periodicamente
+            setInterval(fetchMarketData, 2000);
+            
+            // Desabilitar botões de negociação inicialmente
+            document.getElementById('buy-button').disabled = true;
+            document.getElementById('sell-button').disabled = true;
+            document.getElementById('auto-trading').disabled = true;
+        }
+
+        // Iniciar quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

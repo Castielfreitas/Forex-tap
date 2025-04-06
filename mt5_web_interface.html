@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT5 Tape Reading EA - Painel de Controle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+            
+            .sidebar.active {
+                margin-left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content.active {
+                margin-left: 250px;
+            }
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .stat-card {
+            border-left: 5px solid var(--secondary-color);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card.profit {
+            border-left-color: var(--success-color);
+        }
+        
+        .stat-card.loss {
+            border-left-color: var(--danger-color);
+        }
+        
+        .stat-card.neutral {
+            border-left-color: var(--warning-color);
+        }
+        
+        .stat-card .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .stat-card .stat-label {
+            color: var(--gray-color);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .stat-card .stat-icon {
+            font-size: 40px;
+            opacity: 0.2;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+            border-top: none;
+        }
+        
+        .table td, .table th {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+        
+        .badge {
+            padding: 5px 10px;
+            font-weight: 500;
+            border-radius: 5px;
+        }
+        
+        .badge-buy {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .badge-sell {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .badge-pending {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .badge-completed {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .badge-canceled {
+            background-color: var(--gray-color);
+            color: white;
+        }
+        
+        .progress {
+            height: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+        
+        .form-control, .form-select {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            border-color: #c0392b;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+            border-color: #e67e22;
+            color: white;
+        }
+        
+        .nav-tabs {
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--gray-color);
+            font-weight: 500;
+            padding: 10px 15px;
+            margin-right: 5px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            background-color: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-color: transparent;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .account-type-selector {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .account-type-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+        
+        .account-type-option:first-child {
+            margin-left: 0;
+        }
+        
+        .account-type-option:last-child {
+            margin-right: 0;
+        }
+        
+        .account-type-option.selected {
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .account-type-option i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--gray-color);
+        }
+        
+        .account-type-option.selected i {
+            color: var(--secondary-color);
+        }
+        
+        .account-type-option h5 {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .account-type-option p {
+            color: var(--gray-color);
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+        
+        .replication-settings {
+            background-color: rgba(52, 152, 219, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .positive-value {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+        
+        .negative-value {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+        
+        .neutral-value {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--secondary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .connection-status.connected {
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .connection-status.disconnected {
+            background-color: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .connection-status .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .connection-status.connected .status-indicator {
+            background-color: var(--success-color);
+        }
+        
+        .connection-status.disconnected .status-indicator {
+            background-color: var(--danger-color);
+        }
+        
+        .connection-status .status-text {
+            font-weight: 500;
+        }
+        
+        .connection-status.connected .status-text {
+            color: var(--success-color);
+        }
+        
+        .connection-status.disconnected .status-text {
+            color: var(--danger-color);
+        }
+        
+        .connection-status .status-details {
+            margin-left: auto;
+            font-size: 14px;
+            color: var(--gray-color);
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        
+        .toast {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            min-width: 300px;
+        }
+        
+        .toast-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 10px 15px;
+        }
+        
+        .toast-body {
+            padding: 15px;
+        }
+        
+        .toast.success .toast-header {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .toast.error .toast-header {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .toast.warning .toast-header {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .toast.info .toast-header {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="d-flex justify-content-center align-items-center mb-4">
+            <h4 class="mb-0">MT5 Tape Reading EA</h4>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#account" data-bs-toggle="tab">
+                    <i class="bi bi-person-circle"></i> Conta
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#orders" data-bs-toggle="tab">
+                    <i class="bi bi-list-check"></i> Ordens
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#positions" data-bs-toggle="tab">
+                    <i class="bi bi-graph-up"></i> Posições
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#performance" data-bs-toggle="tab">
+                    <i class="bi bi-bar-chart"></i> Desempenho
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#replication" data-bs-toggle="tab">
+                    <i class="bi bi-arrow-repeat"></i> Replicação
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#settings" data-bs-toggle="tab">
+                    <i class="bi bi-gear"></i> Configurações
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#logs" data-bs-toggle="tab">
+                    <i class="bi bi-journal-text"></i> Logs
+                </a>
+            </li>
+        </ul>
+        <div class="mt-auto p-3">
+            <div class="connection-status connected">
+                <div class="status-indicator"></div>
+                <div class="status-text">Conectado</div>
+                <div class="status-details">Última atualização: 09:05</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <div class="container-fluid">
+            <div class="tab-content">
+                <!-- Dashboard Tab -->
+                <div class="tab-pane fade show active" id="dashboard">
+                    <h2 class="mb-4">Dashboard</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card stat-card profit">
+                                <div class="card-body">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-currency-dollar"></i>
+                                    </div>
+                                    <div class="stat-value">$10,120.50</div>
+                                    <div class="stat-label">Patrimônio</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card neutral">
+                                <div class="card-body">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-percent"></i>
+                                    </div>
+                                    <div class="stat-value">98.5%</div>
+                                    <div class="stat-label">Nível de Margem</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card profit">
+                                <div class="card-body">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-graph-up-arrow"></i>
+                                    </div>
+                                    <div class="stat-value">+$120.50</div>
+                                    <div class="stat-label">Lucro/Prejuízo Diário</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card neutral">
+                                <div class="card-body">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-bullseye"></i>
+                                    </div>
+                                    <div class="stat-value">65%</div>
+                                    <div class="stat-label">Taxa de Acerto</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>Evolução do Patrimônio</div>
+                                    <div>
+                                        <select class="form-select form-select-sm" id="patrimonio-periodo">
+                                            <option value="7">7 dias</option>
+                                            <option value="15">15 dias</option>
+                                            <option value="30" selected>30 dias</option>
+                                            <option value="90">90 dias</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="patrimonioChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">Operações Hoje</div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Total de Operações:</div>
+                                        <div><strong>5</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Operações Lucrativas:</div>
+                                        <div><strong class="positive-value">3 (60%)</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Operações Perdedoras:</div>
+                                        <div><strong class="negative-value">2 (40%)</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Lucro Médio:</div>
+                                        <div><strong class="positive-value">$45.25</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Perda Média:</div>
+                                        <div><strong class="negative-value">$22.75</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div>Drawdown Máximo:</div>
+                                        <div><strong class="negative-value">-$85.20</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Posições Abertas</div>
+                                <div class="card-body">
+                                    <div class="table-container">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Símbolo</th>
+                                                    <th>Tipo</th>
+                                                    <th>Volume</th>
+                                                    <th>Preço</th>
+                                                    <th>Lucro/Prejuízo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>EURUSD</td>
+                                                    <td><span class="badge badge-buy">COMPRA</span></td>
+                                                    <td>0.10</td>
+                                                    <td>1.0765</td>
+                                                    <td class="positive-value">+$35.20</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>USDJPY</td>
+                                                    <td><span class="badge badge-sell">VENDA</span></td>
+                                                    <td>0.25</td>
+                                                    <td>151.432</td>
+                                                    <td class="negative-value">-$12.75</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Últimas Ordens</div>
+                                <div class="card-body">
+                                    <div class="table-container">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Símbolo</th>
+                                                    <th>Tipo</th>
+                                                    <th>Volume</th>
+                                                    <th>Preço</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>GBPUSD</td>
+                                                    <td><span class="badge badge-buy">COMPRA</span></td>
+                                                    <td>0.15</td>
+                                                    <td>1.2654</td>
+                                                    <td><span class="badge badge-completed">Executada</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>AUDUSD</td>
+                                                    <td><span class="badge badge-sell">VENDA</span></td>
+                                                    <td>0.20</td>
+                                                    <td>0.6543</td>
+                                                    <td><span class="badge badge-pending">Pendente</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>EURUSD</td>
+                                                    <td><span class="badge badge-sell">VENDA</span></td>
+                                                    <td>0.10</td>
+                                                    <td>1.0780</td>
+                                                    <td><span class="badge badge-canceled">Cancelada</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Tab -->
+                <div class="tab-pane fade" id="account">
+                    <h2 class="mb-4">Conta</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Informações da Conta</div>
+                                <div class="card-body">
+                                    <div class="account-type-selector">
+                                        <div class="account-type-option selected" id="demo-account">
+                                            <i class="bi bi-journal-check"></i>
+                                            <h5>Conta Demo</h5>
+                                            <p>Para testes e simulações</p>
+                                        </div>
+                                        <div class="account-type-option" id="real-account">
+                                            <i class="bi bi-currency-exchange"></i>
+                                            <h5>Conta Real</h5>
+                                            <p>Para operações reais</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <form id="account-form">
+                                        <div class="mb-3">
+                                            <label for="account-server" class="form-label">Servidor</label>
+                                            <input type="text" class="form-control" id="account-server" placeholder="MetaQuotes-Demo">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="account-login" class="form-label">Login</label>
+                                            <input type="text" class="form-control" id="account-login" placeholder="12345678">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="account-password" class="form-label">Senha</label>
+                                            <input type="password" class="form-control" id="account-password" placeholder="********">
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <button type="button" class="btn btn-primary" id="connect-button">Conectar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Resumo da Conta</div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Saldo:</div>
+                                        <div><strong>$10,000.00</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Patrimônio:</div>
+                                        <div><strong>$10,120.50</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Margem Livre:</div>
+                                        <div><strong>$9,850.30</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Nível de Margem:</div>
+                                        <div><strong>98.5%</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Alavancagem:</div>
+                                        <div><strong>1:100</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Moeda:</div>
+                                        <div><strong>USD</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div>Status:</div>
+                                        <div><span class="badge bg-success">Ativo</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card mt-4">
+                                <div class="card-header">Ações</div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-warning mb-2">Atualizar Dados</button>
+                                        <button type="button" class="btn btn-danger">Desconectar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Orders Tab -->
+                <div class="tab-pane fade" id="orders">
+                    <h2 class="mb-4">Ordens</h2>
+                    
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>Histórico de Ordens</div>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newOrderModal">
+                                    <i class="bi bi-plus-circle"></i> Nova Ordem
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ticket</th>
+                                            <th>Símbolo</th>
+                                            <th>Tipo</th>
+                                            <th>Volume</th>
+                                            <th>Preço Abertura</th>
+                                            <th>Preço Fechamento</th>
+                                            <th>SL</th>
+                                            <th>TP</th>
+                                            <th>Lucro/Prejuízo</th>
+                                            <th>Status</th>
+                                            <th>Data/Hora</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>123456789</td>
+                                            <td>EURUSD</td>
+                                            <td><span class="badge badge-buy">COMPRA</span></td>
+                                            <td>0.10</td>
+                                            <td>1.0750</td>
+                                            <td>1.0780</td>
+                                            <td>1.0720</td>
+                                            <td>1.0800</td>
+                                            <td class="positive-value">+$30.00</td>
+                                            <td><span class="badge badge-completed">Executada</span></td>
+                                            <td>06/04/2025 08:45</td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456790</td>
+                                            <td>GBPUSD</td>
+                                            <td><span class="badge badge-sell">VENDA</span></td>
+                                            <td>0.15</td>
+                                            <td>1.2670</td>
+                                            <td>1.2650</td>
+                                            <td>1.2700</td>
+                                            <td>1.2600</td>
+                                            <td class="positive-value">+$30.00</td>
+                                            <td><span class="badge badge-completed">Executada</span></td>
+                                            <td>06/04/2025 08:30</td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456791</td>
+                                            <td>USDJPY</td>
+                                            <td><span class="badge badge-buy">COMPRA</span></td>
+                                            <td>0.20</td>
+                                            <td>151.400</td>
+                                            <td>151.350</td>
+                                            <td>151.300</td>
+                                            <td>151.500</td>
+                                            <td class="negative-value">-$10.00</td>
+                                            <td><span class="badge badge-completed">Executada</span></td>
+                                            <td>06/04/2025 08:15</td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456792</td>
+                                            <td>AUDUSD</td>
+                                            <td><span class="badge badge-sell">VENDA</span></td>
+                                            <td>0.25</td>
+                                            <td>0.6550</td>
+                                            <td>-</td>
+                                            <td>0.6580</td>
+                                            <td>0.6500</td>
+                                            <td>-</td>
+                                            <td><span class="badge badge-pending">Pendente</span></td>
+                                            <td>06/04/2025 08:00</td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456793</td>
+                                            <td>EURUSD</td>
+                                            <td><span class="badge badge-sell">VENDA</span></td>
+                                            <td>0.10</td>
+                                            <td>1.0780</td>
+                                            <td>-</td>
+                                            <td>1.0810</td>
+                                            <td>1.0730</td>
+                                            <td>-</td>
+                                            <td><span class="badge badge-canceled">Cancelada</span></td>
+                                            <td>06/04/2025 07:45</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Positions Tab -->
+                <div class="tab-pane fade" id="positions">
+                    <h2 class="mb-4">Posições</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">Posições Abertas</div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ticket</th>
+                                            <th>Símbolo</th>
+                                            <th>Tipo</th>
+                                            <th>Volume</th>
+                                            <th>Preço Abertura</th>
+                                            <th>Preço Atual</th>
+                                            <th>SL</th>
+                                            <th>TP</th>
+                                            <th>Swap</th>
+                                            <th>Lucro/Prejuízo</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>123456794</td>
+                                            <td>EURUSD</td>
+                                            <td><span class="badge badge-buy">COMPRA</span></td>
+                                            <td>0.10</td>
+                                            <td>1.0765</td>
+                                            <td>1.0780</td>
+                                            <td>1.0735</td>
+                                            <td>1.0815</td>
+                                            <td>-0.12</td>
+                                            <td class="positive-value">+$15.00</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modifyPositionModal">Modificar</button>
+                                                <button class="btn btn-sm btn-danger">Fechar</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456795</td>
+                                            <td>USDJPY</td>
+                                            <td><span class="badge badge-sell">VENDA</span></td>
+                                            <td>0.25</td>
+                                            <td>151.432</td>
+                                            <td>151.450</td>
+                                            <td>151.500</td>
+                                            <td>151.300</td>
+                                            <td>-0.25</td>
+                                            <td class="negative-value">-$3.75</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modifyPositionModal">Modificar</button>
+                                                <button class="btn btn-sm btn-danger">Fechar</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">Resumo de Posições</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card stat-card">
+                                        <div class="card-body">
+                                            <div class="stat-value">2</div>
+                                            <div class="stat-label">Total de Posições</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card stat-card profit">
+                                        <div class="card-body">
+                                            <div class="stat-value">+$11.25</div>
+                                            <div class="stat-label">Lucro/Prejuízo Total</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card stat-card neutral">
+                                        <div class="card-body">
+                                            <div class="stat-value">0.35</div>
+                                            <div class="stat-label">Volume Total</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Tab -->
+                <div class="tab-pane fade" id="performance">
+                    <h2 class="mb-4">Desempenho de Negociação</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>Evolução do Patrimônio</div>
+                                    <div>
+                                        <select class="form-select form-select-sm" id="patrimonio-periodo-2">
+                                            <option value="7">7 dias</option>
+                                            <option value="15">15 dias</option>
+                                            <option value="30" selected>30 dias</option>
+                                            <option value="90">90 dias</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="patrimonioChart2"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>Drawdown</div>
+                                    <div>
+                                        <select class="form-select form-select-sm" id="drawdown-periodo">
+                                            <option value="7">7 dias</option>
+                                            <option value="15">15 dias</option>
+                                            <option value="30" selected>30 dias</option>
+                                            <option value="90">90 dias</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="drawdownChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Métricas de Desempenho</div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Lucro/Prejuízo Diário:</div>
+                                        <div><strong class="positive-value">+$120.50</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Taxa de Acerto:</div>
+                                        <div><strong>65%</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Operações Hoje:</div>
+                                        <div><strong>5</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Drawdown Máximo:</div>
+                                        <div><strong class="negative-value">-$85.20</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Fator de Lucro:</div>
+                                        <div><strong>1.8</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Expectativa:</div>
+                                        <div><strong class="positive-value">+$15.25</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div>Ganho Médio:</div>
+                                        <div><strong class="positive-value">+$45.25</strong></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div>Perda Média:</div>
+                                        <div><strong class="negative-value">-$22.75</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">Desempenho por Símbolo</div>
+                                <div class="card-body">
+                                    <div class="table-container">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Símbolo</th>
+                                                    <th>Operações</th>
+                                                    <th>Taxa de Acerto</th>
+                                                    <th>Lucro/Prejuízo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>EURUSD</td>
+                                                    <td>15</td>
+                                                    <td>73%</td>
+                                                    <td class="positive-value">+$85.50</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>GBPUSD</td>
+                                                    <td>12</td>
+                                                    <td>67%</td>
+                                                    <td class="positive-value">+$65.25</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>USDJPY</td>
+                                                    <td>8</td>
+                                                    <td>50%</td>
+                                                    <td class="negative-value">-$15.75</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>AUDUSD</td>
+                                                    <td>5</td>
+                                                    <td>60%</td>
+                                                    <td class="positive-value">+$25.00</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Replication Tab -->
+                <div class="tab-pane fade" id="replication">
+                    <h2 class="mb-4">Replicação de Ordens</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">Configuração de Replicação</div>
+                        <div class="card-body">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="replication-enabled" checked>
+                                <label class="form-check-label" for="replication-enabled">Habilitar replicação de ordens</label>
+                            </div>
+                            
+                            <div class="replication-settings">
+                                <h5 class="mb-3">Conta Destino</h5>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="target-account-type" class="form-label">Tipo de Conta</label>
+                                        <select class="form-select" id="target-account-type">
+                                            <option value="demo">Demo</option>
+                                            <option value="real">Real</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="target-account-server" class="form-label">Servidor</label>
+                                        <input type="text" class="form-control" id="target-account-server" placeholder="MetaQuotes-Demo">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="target-account-login" class="form-label">Login</label>
+                                        <input type="text" class="form-control" id="target-account-login" placeholder="87654321">
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="target-account-password" class="form-label">Senha</label>
+                                        <input type="password" class="form-control" id="target-account-password" placeholder="********">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="volume-multiplier" class="form-label">Multiplicador de Volume</label>
+                                        <input type="number" class="form-control" id="volume-multiplier" value="1.0" step="0.1" min="0.1" max="10.0">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="delay-seconds" class="form-label">Atraso (segundos)</label>
+                                        <input type="number" class="form-control" id="delay-seconds" value="0" min="0" max="60">
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="reverse-direction">
+                                            <label class="form-check-label" for="reverse-direction">Inverter direção das ordens</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="include-sl-tp" checked>
+                                            <label class="form-check-label" for="include-sl-tp">Incluir Stop Loss e Take Profit</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <button type="button" class="btn btn-primary">Salvar Configurações</button>
+                                        <button type="button" class="btn btn-warning ms-2">Testar Conexão</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">Status da Replicação</div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ordem Original</th>
+                                            <th>Conta Origem</th>
+                                            <th>Ordem Replicada</th>
+                                            <th>Conta Destino</th>
+                                            <th>Símbolo</th>
+                                            <th>Tipo</th>
+                                            <th>Volume</th>
+                                            <th>Status</th>
+                                            <th>Data/Hora</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>123456789</td>
+                                            <td>12345678</td>
+                                            <td>987654321</td>
+                                            <td>87654321</td>
+                                            <td>EURUSD</td>
+                                            <td><span class="badge badge-buy">COMPRA</span></td>
+                                            <td>0.10</td>
+                                            <td><span class="badge badge-completed">Replicada</span></td>
+                                            <td>06/04/2025 08:45</td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456790</td>
+                                            <td>12345678</td>
+                                            <td>987654322</td>
+                                            <td>87654321</td>
+                                            <td>GBPUSD</td>
+                                            <td><span class="badge badge-sell">VENDA</span></td>
+                                            <td>0.15</td>
+                                            <td><span class="badge badge-completed">Replicada</span></td>
+                                            <td>06/04/2025 08:30</td>
+                                        </tr>
+                                        <tr>
+                                            <td>123456791</td>
+                                            <td>12345678</td>
+                                            <td>987654323</td>
+                                            <td>87654321</td>
+                                            <td>USDJPY</td>
+                                            <td><span class="badge badge-buy">COMPRA</span></td>
+                                            <td>0.20</td>
+                                            <td><span class="badge badge-completed">Replicada</span></td>
+                                            <td>06/04/2025 08:15</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div class="tab-pane fade" id="settings">
+                    <h2 class="mb-4">Configurações</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link active" id="general-tab" data-bs-toggle="tab" href="#general-settings" role="tab" aria-controls="general-settings" aria-selected="true">Geral</a>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="tape-reading-tab" data-bs-toggle="tab" href="#tape-reading-settings" role="tab" aria-controls="tape-reading-settings" aria-selected="false">Tape Reading</a>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="risk-tab" data-bs-toggle="tab" href="#risk-settings" role="tab" aria-controls="risk-settings" aria-selected="false">Gerenciamento de Risco</a>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="notification-tab" data-bs-toggle="tab" href="#notification-settings" role="tab" aria-controls="notification-settings" aria-selected="false">Notificações</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="settingsTabsContent">
+                                <!-- General Settings -->
+                                <div class="tab-pane fade show active" id="general-settings" role="tabpanel" aria-labelledby="general-tab">
+                                    <h5 class="mb-3">Configurações Gerais</h5>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="ea-enabled" checked>
+                                            <label class="form-check-label" for="ea-enabled">Habilitar EA</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="symbols" class="form-label">Símbolos</label>
+                                        <select class="form-select" id="symbols" multiple>
+                                            <option value="EURUSD" selected>EURUSD</option>
+                                            <option value="GBPUSD" selected>GBPUSD</option>
+                                            <option value="USDJPY" selected>USDJPY</option>
+                                            <option value="AUDUSD">AUDUSD</option>
+                                            <option value="USDCAD">USDCAD</option>
+                                            <option value="USDCHF">USDCHF</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="timeframes" class="form-label">Timeframes</label>
+                                        <select class="form-select" id="timeframes" multiple>
+                                            <option value="M1" selected>M1</option>
+                                            <option value="M5" selected>M5</option>
+                                            <option value="M15" selected>M15</option>
+                                            <option value="M30">M30</option>
+                                            <option value="H1">H1</option>
+                                            <option value="H4">H4</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="magic-number" class="form-label">Magic Number</label>
+                                        <input type="number" class="form-control" id="magic-number" value="123456">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="max-spread" class="form-label">Spread Máximo (pontos)</label>
+                                        <input type="number" class="form-control" id="max-spread" value="10">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="slippage" class="form-label">Slippage (pontos)</label>
+                                        <input type="number" class="form-control" id="slippage" value="5">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">Comentário</label>
+                                        <input type="text" class="form-control" id="comment" value="Tape Reading EA">
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-primary">Salvar Configurações</button>
+                                </div>
+                                
+                                <!-- Tape Reading Settings -->
+                                <div class="tab-pane fade" id="tape-reading-settings" role="tabpanel" aria-labelledby="tape-reading-tab">
+                                    <h5 class="mb-3">Configurações de Tape Reading</h5>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Desequilíbrio de Volume</h6>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="volume-imbalance-enabled" checked>
+                                            <label class="form-check-label" for="volume-imbalance-enabled">Habilitar análise de desequilíbrio de volume</label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label for="volume-threshold" class="form-label">Limiar</label>
+                                                <input type="number" class="form-control" id="volume-threshold" value="2.0" step="0.1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="volume-lookback" class="form-label">Barras para análise</label>
+                                                <input type="number" class="form-control" id="volume-lookback" value="10">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="min-volume" class="form-label">Volume mínimo</label>
+                                                <input type="number" class="form-control" id="min-volume" value="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Footprint</h6>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="footprint-enabled" checked>
+                                            <label class="form-check-label" for="footprint-enabled">Habilitar análise de footprint</label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="footprint-lookback" class="form-label">Barras para análise</label>
+                                                <input type="number" class="form-control" id="footprint-lookback" value="20">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="delta-threshold" class="form-label">Limiar de delta</label>
+                                                <input type="number" class="form-control" id="delta-threshold" value="0.6" step="0.1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Níveis de Preço</h6>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="price-levels-enabled" checked>
+                                            <label class="form-check-label" for="price-levels-enabled">Habilitar análise de níveis de preço</label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="price-levels-lookback" class="form-label">Barras para análise</label>
+                                                <input type="number" class="form-control" id="price-levels-lookback" value="50">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="price-levels-volume" class="form-label">Volume mínimo</label>
+                                                <input type="number" class="form-control" id="price-levels-volume" value="1000">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Perfil de Mercado</h6>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="market-profile-enabled" checked>
+                                            <label class="form-check-label" for="market-profile-enabled">Habilitar análise de perfil de mercado</label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="market-profile-lookback" class="form-label">Barras para análise</label>
+                                                <input type="number" class="form-control" id="market-profile-lookback" value="100">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="value-area-percent" class="form-label">Percentual da área de valor</label>
+                                                <input type="number" class="form-control" id="value-area-percent" value="70">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-primary">Salvar Configurações</button>
+                                </div>
+                                
+                                <!-- Risk Management Settings -->
+                                <div class="tab-pane fade" id="risk-settings" role="tabpanel" aria-labelledby="risk-tab">
+                                    <h5 class="mb-3">Configurações de Gerenciamento de Risco</h5>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Limites de Risco</h6>
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="max-daily-loss" class="form-label">Perda diária máxima (%)</label>
+                                                <input type="number" class="form-control" id="max-daily-loss" value="3.0" step="0.1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="max-weekly-loss" class="form-label">Perda semanal máxima (%)</label>
+                                                <input type="number" class="form-control" id="max-weekly-loss" value="7.0" step="0.1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="max-monthly-loss" class="form-label">Perda mensal máxima (%)</label>
+                                                <input type="number" class="form-control" id="max-monthly-loss" value="15.0" step="0.1">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="max-drawdown" class="form-label">Drawdown máximo (%)</label>
+                                                <input type="number" class="form-control" id="max-drawdown" value="20.0" step="0.1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="max-positions" class="form-label">Posições máximas</label>
+                                                <input type="number" class="form-control" id="max-positions" value="5">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="max-positions-symbol" class="form-label">Posições máximas por símbolo</label>
+                                                <input type="number" class="form-control" id="max-positions-symbol" value="2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Dimensionamento de Posição</h6>
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="position-sizing-method" class="form-label">Método</label>
+                                                <select class="form-select" id="position-sizing-method">
+                                                    <option value="fixed">Fixo</option>
+                                                    <option value="risk" selected>Risco</option>
+                                                    <option value="equity">Patrimônio</option>
+                                                    <option value="kelly">Kelly</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="fixed-lot-size" class="form-label">Tamanho fixo do lote</label>
+                                                <input type="number" class="form-control" id="fixed-lot-size" value="0.01" step="0.01">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="risk-percent" class="form-label">Percentual de risco</label>
+                                                <input type="number" class="form-control" id="risk-percent" value="1.0" step="0.1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Stop Loss e Take Profit</h6>
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="sl-method" class="form-label">Método de Stop Loss</label>
+                                                <select class="form-select" id="sl-method">
+                                                    <option value="fixed">Fixo</option>
+                                                    <option value="atr" selected>ATR</option>
+                                                    <option value="percent">Percentual</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="tp-method" class="form-label">Método de Take Profit</label>
+                                                <select class="form-select" id="tp-method">
+                                                    <option value="fixed">Fixo</option>
+                                                    <option value="atr">ATR</option>
+                                                    <option value="risk-reward" selected>Risco/Recompensa</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="risk-reward-ratio" class="form-label">Razão Risco/Recompensa</label>
+                                                <input type="number" class="form-control" id="risk-reward-ratio" value="2.0" step="0.1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Trailing Stop e Break Even</h6>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="trailing-stop-enabled" checked>
+                                            <label class="form-check-label" for="trailing-stop-enabled">Habilitar Trailing Stop</label>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-md-4">
+                                                <label for="trailing-activation" class="form-label">Ativação (pips)</label>
+                                                <input type="number" class="form-control" id="trailing-activation" value="15">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="trailing-distance" class="form-label">Distância (pips)</label>
+                                                <input type="number" class="form-control" id="trailing-distance" value="10">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="trailing-step" class="form-label">Passo (pips)</label>
+                                                <input type="number" class="form-control" id="trailing-step" value="5">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="break-even-enabled" checked>
+                                            <label class="form-check-label" for="break-even-enabled">Habilitar Break Even</label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="break-even-activation" class="form-label">Ativação (pips)</label>
+                                                <input type="number" class="form-control" id="break-even-activation" value="10">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="break-even-offset" class="form-label">Offset (pips)</label>
+                                                <input type="number" class="form-control" id="break-even-offset" value="2">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-primary">Salvar Configurações</button>
+                                </div>
+                                
+                                <!-- Notification Settings -->
+                                <div class="tab-pane fade" id="notification-settings" role="tabpanel" aria-labelledby="notification-tab">
+                                    <h5 class="mb-3">Configurações de Notificações</h5>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="email-notifications" checked>
+                                            <label class="form-check-label" for="email-notifications">Notificações por e-mail</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="email-address" class="form-label">Endereço de e-mail</label>
+                                        <input type="email" class="form-control" id="email-address" placeholder="seu@email.com">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="telegram-notifications">
+                                            <label class="form-check-label" for="telegram-notifications">Notificações por Telegram</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="telegram-token" class="form-label">Token do Bot</label>
+                                        <input type="text" class="form-control" id="telegram-token" placeholder="1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="telegram-chat-id" class="form-label">Chat ID</label>
+                                        <input type="text" class="form-control" id="telegram-chat-id" placeholder="123456789">
+                                    </div>
+                                    
+                                    <h6 class="mt-4 mb-3">Eventos para notificação</h6>
+                                    
+                                    <div class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notify-order-executed" checked>
+                                            <label class="form-check-label" for="notify-order-executed">Ordem executada</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notify-position-closed" checked>
+                                            <label class="form-check-label" for="notify-position-closed">Posição fechada</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notify-sl-hit" checked>
+                                            <label class="form-check-label" for="notify-sl-hit">Stop Loss atingido</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notify-tp-hit" checked>
+                                            <label class="form-check-label" for="notify-tp-hit">Take Profit atingido</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notify-daily-summary" checked>
+                                            <label class="form-check-label" for="notify-daily-summary">Resumo diário</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="notify-error" checked>
+                                            <label class="form-check-label" for="notify-error">Erros e avisos</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-primary">Salvar Configurações</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logs Tab -->
+                <div class="tab-pane fade" id="logs">
+                    <h2 class="mb-4">Logs do Sistema</h2>
+                    
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>Logs</div>
+                            <div>
+                                <select class="form-select form-select-sm" id="log-level">
+                                    <option value="all">Todos</option>
+                                    <option value="info">Info</option>
+                                    <option value="warning">Avisos</option>
+                                    <option value="error">Erros</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Data/Hora</th>
+                                            <th>Nível</th>
+                                            <th>Mensagem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>06/04/2025 09:00:15</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>EA iniciado com sucesso</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 08:45:32</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>Ordem #123456789 executada: EURUSD, COMPRA, 0.10, 1.0750</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 08:30:18</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>Ordem #123456790 executada: GBPUSD, VENDA, 0.15, 1.2670</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 08:15:45</td>
+                                            <td><span class="badge bg-warning text-dark">AVISO</span></td>
+                                            <td>Spread alto detectado em USDJPY: 12 pontos</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 08:15:10</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>Ordem #123456791 executada: USDJPY, COMPRA, 0.20, 151.400</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 08:00:05</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>Ordem #123456792 criada: AUDUSD, VENDA, 0.25, 0.6550</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 07:45:22</td>
+                                            <td><span class="badge bg-danger">ERRO</span></td>
+                                            <td>Falha ao executar ordem: EURUSD, VENDA, 0.10, 1.0780. Erro: Preço inválido</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 07:45:20</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>Ordem #123456793 criada: EURUSD, VENDA, 0.10, 1.0780</td>
+                                        </tr>
+                                        <tr>
+                                            <td>06/04/2025 07:30:00</td>
+                                            <td><span class="badge bg-info">INFO</span></td>
+                                            <td>Conectado ao servidor MetaQuotes-Demo</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Order Modal -->
+    <div class="modal fade" id="newOrderModal" tabindex="-1" aria-labelledby="newOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newOrderModalLabel">Nova Ordem</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-order-form">
+                        <div class="mb-3">
+                            <label for="order-symbol" class="form-label">Símbolo</label>
+                            <select class="form-select" id="order-symbol">
+                                <option value="EURUSD">EURUSD</option>
+                                <option value="GBPUSD">GBPUSD</option>
+                                <option value="USDJPY">USDJPY</option>
+                                <option value="AUDUSD">AUDUSD</option>
+                                <option value="USDCAD">USDCAD</option>
+                                <option value="USDCHF">USDCHF</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="order-type" class="form-label">Tipo</label>
+                            <select class="form-select" id="order-type">
+                                <option value="buy">Compra</option>
+                                <option value="sell">Venda</option>
+                                <option value="buy_limit">Compra Limitada</option>
+                                <option value="sell_limit">Venda Limitada</option>
+                                <option value="buy_stop">Compra Stop</option>
+                                <option value="sell_stop">Venda Stop</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="order-volume" class="form-label">Volume</label>
+                            <input type="number" class="form-control" id="order-volume" value="0.01" step="0.01" min="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="order-price" class="form-label">Preço</label>
+                            <input type="number" class="form-control" id="order-price" step="0.00001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="order-sl" class="form-label">Stop Loss</label>
+                            <input type="number" class="form-control" id="order-sl" step="0.00001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="order-tp" class="form-label">Take Profit</label>
+                            <input type="number" class="form-control" id="order-tp" step="0.00001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="order-comment" class="form-label">Comentário</label>
+                            <input type="text" class="form-control" id="order-comment" value="Manual Order">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary">Enviar Ordem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modify Position Modal -->
+    <div class="modal fade" id="modifyPositionModal" tabindex="-1" aria-labelledby="modifyPositionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modifyPositionModalLabel">Modificar Posição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="modify-position-form">
+                        <div class="mb-3">
+                            <label for="position-ticket" class="form-label">Ticket</label>
+                            <input type="text" class="form-control" id="position-ticket" value="123456794" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="position-symbol" class="form-label">Símbolo</label>
+                            <input type="text" class="form-control" id="position-symbol" value="EURUSD" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="position-type" class="form-label">Tipo</label>
+                            <input type="text" class="form-control" id="position-type" value="COMPRA" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="position-volume" class="form-label">Volume</label>
+                            <input type="text" class="form-control" id="position-volume" value="0.10" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="position-open-price" class="form-label">Preço de Abertura</label>
+                            <input type="text" class="form-control" id="position-open-price" value="1.0765" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="position-sl" class="form-label">Stop Loss</label>
+                            <input type="number" class="form-control" id="position-sl" value="1.0735" step="0.00001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="position-tp" class="form-label">Take Profit</label>
+                            <input type="number" class="form-control" id="position-tp" value="1.0815" step="0.00001">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <!-- Success Toast -->
+        <div class="toast success" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast-header">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong class="me-auto">Sucesso</strong>
+                <small>Agora</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Operação realizada com sucesso!
+            </div>
+        </div>
+        
+        <!-- Error Toast -->
+        <div class="toast error" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast-header">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <strong class="me-auto">Erro</strong>
+                <small>Agora</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Ocorreu um erro ao processar sua solicitação.
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Toggle Sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart.js - Patrimônio
+            const patrimonioCtx = document.getElementById('patrimonioChart').getContext('2d');
+            const patrimonioChart = new Chart(patrimonioCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Dia 1', 'Dia 4', 'Dia 7', 'Dia 10', 'Dia 13', 'Dia 16', 'Dia 19', 'Dia 22', 'Dia 25', 'Dia 28'],
+                    datasets: [{
+                        label: 'Patrimônio',
+                        data: [10000, 10050, 10120, 10180, 10250, 10320, 10400, 10450, 10500, 10120],
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart.js - Patrimônio (Performance Tab)
+            const patrimonioCtx2 = document.getElementById('patrimonioChart2').getContext('2d');
+            const patrimonioChart2 = new Chart(patrimonioCtx2, {
+                type: 'line',
+                data: {
+                    labels: ['Dia 1', 'Dia 4', 'Dia 7', 'Dia 10', 'Dia 13', 'Dia 16', 'Dia 19', 'Dia 22', 'Dia 25', 'Dia 28'],
+                    datasets: [{
+                        label: 'Patrimônio',
+                        data: [10000, 10050, 10120, 10180, 10250, 10320, 10400, 10450, 10500, 10120],
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart.js - Drawdown
+            const drawdownCtx = document.getElementById('drawdownChart').getContext('2d');
+            const drawdownChart = new Chart(drawdownCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Dia 1', 'Dia 4', 'Dia 7', 'Dia 10', 'Dia 13', 'Dia 16', 'Dia 19', 'Dia 22', 'Dia 25', 'Dia 28'],
+                    datasets: [{
+                        label: 'Drawdown (%)',
+                        data: [0, -0.5, -1.2, -0.8, -0.3, -0.1, -0.5, -1.0, -1.5, -3.8],
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(231, 76, 60, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Account Type Selector
+            const demoAccount = document.getElementById('demo-account');
+            const realAccount = document.getElementById('real-account');
+            const accountServer = document.getElementById('account-server');
+            
+            demoAccount.addEventListener('click', function() {
+                demoAccount.classList.add('selected');
+                realAccount.classList.remove('selected');
+                accountServer.placeholder = 'MetaQuotes-Demo';
+            });
+            
+            realAccount.addEventListener('click', function() {
+                realAccount.classList.add('selected');
+                demoAccount.classList.remove('selected');
+                accountServer.placeholder = 'MetaQuotes-Real';
+            });
+            
+            // Connect Button
+            const connectButton = document.getElementById('connect-button');
+            
+            connectButton.addEventListener('click', function() {
+                // Simulate connection
+                const successToast = document.querySelector('.toast.success');
+                const bsToast = new bootstrap.Toast(successToast);
+                
+                successToast.querySelector('.toast-body').textContent = 'Conectado com sucesso!';
+                bsToast.show();
+            });
+        });
+    </script>
+</body>
+</html>
